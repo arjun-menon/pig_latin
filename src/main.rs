@@ -1,9 +1,8 @@
 use clap::Parser;
 use rayon::prelude::*;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::prelude::*;
 use std::io::{self, BufRead};
-use std::path::Path;
 
 struct Token {
     text: Vec<char>,
@@ -132,9 +131,7 @@ fn main() {
     let read_err = format!("Could not read from {}", original_file_name);
     let write_err = format!("Could not write to {}", pig_latin_file_name);
 
-    let orig_file = File::open(Path::new(&original_file_name)).expect(&read_err);
-    let mut output_file = File::create(Path::new(&pig_latin_file_name)).expect(&write_err);
-    let lines = io::BufReader::new(orig_file).lines();
+    let mut output_file = File::create(&pig_latin_file_name).expect(&write_err);
 
     println!(
         "Processing{}...",
@@ -142,20 +139,22 @@ fn main() {
     );
 
     if args.fast {
-        lines
-            .map(|line| line.expect(&read_err))
-            .collect::<Vec<String>>() // load all lines fully into memory
-            .into_par_iter() // process lines in paralell
-            .flat_map(|line| str_to_tokens(&line, true))
-            .map(|tok| tok.transform_to_pig_latin())
-            .collect::<Vec<String>>()
-            .into_iter()
-            .for_each(|line| {
-                output_file.write(line.as_bytes()).expect(&write_err);
-            });
+        output_file
+            .write(
+                str_to_tokens(
+                    &fs::read_to_string(&original_file_name).expect(&read_err),
+                    false,
+                )
+                .into_par_iter() // process tokens in paralell
+                .map(|tok| tok.transform_to_pig_latin())
+                .reduce(|| "".to_string(), |cur: String, nxt: String| cur + &nxt)
+                .as_bytes(),
+            )
+            .expect(&write_err);
     } else {
         // when run without --fast, use less memory by processing in chunks
-        lines
+        io::BufReader::new(File::open(&original_file_name).expect(&read_err))
+            .lines() // read the file line-by-line
             .flat_map(|line| str_to_tokens(&line.expect(&read_err), true))
             .map(|tok| tok.transform_to_pig_latin())
             .for_each(|line| {
