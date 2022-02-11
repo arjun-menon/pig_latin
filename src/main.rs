@@ -120,7 +120,7 @@ fn main() {
 
     let original_file_name: String = match args.filename {
         None => {
-            let default_input = "t8.shakespeare.txt"; // "small.txt"
+            let default_input = "t8.shakespeare.txt";
             println!("Defaulting to {}", default_input);
             default_input.to_string()
         }
