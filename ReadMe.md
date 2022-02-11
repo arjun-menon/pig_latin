@@ -11,7 +11,7 @@
         <FILENAME>    File name to process
 
     OPTIONS:
-        -f, --fast               Process faster
         -h, --help               Print help information
+        -l, --lowmem             Use less RAM (random access memory)
         -o, --output <OUTPUT>    Output file name [default: output.txt]
 

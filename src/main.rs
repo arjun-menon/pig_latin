@@ -110,9 +110,9 @@ struct Args {
     #[clap(short, long, default_value_t = String::from("output.txt"))]
     output: String,
 
-    /// Process faster
+    /// Use less RAM (random access memory)
     #[clap(short, long)]
-    fast: bool,
+    lowmem: bool,
 }
 
 fn main() {
@@ -133,12 +133,10 @@ fn main() {
 
     let mut output_file = File::create(&pig_latin_file_name).expect(&write_err);
 
-    println!(
-        "Processing{}...",
-        if !args.fast { "" } else { " with fast enabled" }
-    );
+    let lowmem = " with lower memory usage";
+    println!("Processing{}...", if args.lowmem { lowmem } else { "" });
 
-    if args.fast {
+    if !args.lowmem {
         output_file
             .write(
                 str_to_tokens(
@@ -152,7 +150,7 @@ fn main() {
             )
             .expect(&write_err);
     } else {
-        // when run without --fast, use less memory by processing in chunks
+        // when run with --lowmem, use less memory by processing in chunks
         io::BufReader::new(File::open(&original_file_name).expect(&read_err))
             .lines() // read the file line-by-line
             .flat_map(|line| str_to_tokens(&line.expect(&read_err), true))
