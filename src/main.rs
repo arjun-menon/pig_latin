@@ -5,8 +5,27 @@ use std::io::{self, BufRead};
 use std::path::Path;
 
 struct Token {
-    text: String,
+    text: Vec<char>,
     alphabetic: bool,
+}
+impl Token {
+    fn new(text: Vec<char>, alphabetic: bool) -> Token {
+        assert!(text.len() > 0);
+        Token { text, alphabetic }
+    }
+}
+
+fn transform(tok: Token) -> String {
+    let t = tok.text;
+    if tok.alphabetic {
+        let s: String = "".to_string();
+
+        let is_capitalized: bool = t[0].is_uppercase();
+
+        t.iter().collect()
+    } else {
+        t.iter().collect()
+    }
 }
 
 fn str_to_tokens(s: &str) -> Vec<Token> {
@@ -20,18 +39,9 @@ fn str_to_tokens(s: &str) -> Vec<Token> {
     }
     let mut state = State::NotStarted;
 
-    let mut tok_chars: Vec<char> = Vec::new();
+    let mut text: Vec<char> = Vec::new();
     let mut alphabetic: bool = false;
     let mut wrap_up: bool = false;
-    fn collect(tokens: &mut Vec<Token>, tok_chars: &mut Vec<char>, alphabetic: bool) {
-        // collect tok_chars so far
-        assert!(tok_chars.len() > 0);
-        tokens.push(Token {
-            text: tok_chars.iter().collect(),
-            alphabetic,
-        });
-        tok_chars.clear();
-    }
 
     for c in s.chars() {
         if state == State::NotStarted {
@@ -50,7 +60,8 @@ fn str_to_tokens(s: &str) -> Vec<Token> {
 
         // wrap up
         if wrap_up {
-            collect(&mut tokens, &mut tok_chars, alphabetic);
+            tokens.push(Token::new(text, alphabetic));
+            text = Vec::new();
 
             // reset alphabetic
             alphabetic = c.is_alphabetic();
@@ -60,11 +71,11 @@ fn str_to_tokens(s: &str) -> Vec<Token> {
         }
 
         // collect char
-        tok_chars.push(c);
+        text.push(c);
         alphabetic = alphabetic && c.is_alphabetic();
     }
-    if tok_chars.len() > 0 {
-        collect(&mut tokens, &mut tok_chars, alphabetic);
+    if text.len() > 0 {
+        tokens.push(Token::new(text, alphabetic));
     }
 
     tokens
@@ -86,8 +97,10 @@ fn main() {
         let orig_line = orig_line.expect(&read_err);
 
         for tok in str_to_tokens(&orig_line) {
-            println!("Tok ({}, {}): {}", tok.alphabetic, tok.text.len(), tok.text);
+            let s: String = transform(tok);
+            print!("{}", s);
         }
+        println!("");
 
         // output_file
         //     .write(format!("{}\n", output_line).as_bytes())
