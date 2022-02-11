@@ -18,14 +18,27 @@ impl Token {
 fn transform(tok: Token) -> String {
     let t = tok.text;
     if tok.alphabetic {
-        let s: String = "".to_string();
-
         let is_capitalized: bool = t[0].is_uppercase();
-
-        t.iter().collect()
-    } else {
-        t.iter().collect()
+        if let Some(vowel_pos) = find_first_vowel(&t) {
+            //
+        }
+        // if we reach this point, it means `t` only has consonants
     }
+    t.iter().collect()
+}
+
+fn find_first_vowel(t: &Vec<char>) -> Option<usize> {
+    for (i, c) in t.iter().enumerate() {
+        if is_vowel(c) {
+            return Some(i);
+        }
+    }
+    None
+}
+
+fn is_vowel(c: &char) -> bool {
+    let c = c.to_ascii_lowercase();
+    c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'
 }
 
 fn str_to_tokens(s: &str) -> Vec<Token> {
@@ -40,31 +53,33 @@ fn str_to_tokens(s: &str) -> Vec<Token> {
     let mut state = State::NotStarted;
 
     let mut text: Vec<char> = Vec::new();
-    let mut alphabetic: bool = false;
-    let mut wrap_up: bool = false;
+    let mut prev_alphabetic = false;
+    let mut wrap_up = false;
 
     for c in s.chars() {
+        let alphabetic = c.is_ascii_alphabetic();
+
         if state == State::NotStarted {
-            state = if c.is_alphabetic() {
+            state = if alphabetic {
                 State::Alphabetic
             } else {
                 State::NotAlphabetic
             };
-        } else if state == State::Alphabetic && !c.is_alphabetic() {
+        } else if state == State::Alphabetic && !alphabetic {
             wrap_up = true;
             state = State::NotAlphabetic;
-        } else if state == State::NotAlphabetic && c.is_alphabetic() {
+        } else if state == State::NotAlphabetic && alphabetic {
             wrap_up = true;
             state = State::Alphabetic;
         }
 
         // wrap up
         if wrap_up {
-            tokens.push(Token::new(text, alphabetic));
+            tokens.push(Token::new(text, prev_alphabetic));
             text = Vec::new();
 
             // reset alphabetic
-            alphabetic = c.is_alphabetic();
+            prev_alphabetic = alphabetic;
 
             // reset wrap_up
             wrap_up = false;
@@ -72,10 +87,10 @@ fn str_to_tokens(s: &str) -> Vec<Token> {
 
         // collect char
         text.push(c);
-        alphabetic = alphabetic && c.is_alphabetic();
+        prev_alphabetic = prev_alphabetic && c.is_alphabetic();
     }
     if text.len() > 0 {
-        tokens.push(Token::new(text, alphabetic));
+        tokens.push(Token::new(text, prev_alphabetic));
     }
 
     tokens
