@@ -4,6 +4,72 @@ use std::io::prelude::*;
 use std::io::{self, BufRead};
 use std::path::Path;
 
+struct Token {
+    text: String,
+    alphabetic: bool,
+}
+
+fn str_to_tokens(s: &str) -> Vec<Token> {
+    let mut tokens: Vec<Token> = Vec::new();
+
+    #[derive(PartialEq, Eq)]
+    enum State {
+        NotStarted,
+        Alphabetic,
+        NotAlphabetic,
+    }
+    let mut state = State::NotStarted;
+
+    let mut tok_chars: Vec<char> = Vec::new();
+    let mut alphabetic: bool = false;
+    let mut wrap_up: bool = false;
+    fn collect(tokens: &mut Vec<Token>, tok_chars: &mut Vec<char>, alphabetic: bool) {
+        // collect tok_chars so far
+        assert!(tok_chars.len() > 0);
+        tokens.push(Token {
+            text: tok_chars.iter().collect(),
+            alphabetic,
+        });
+        tok_chars.clear();
+    }
+
+    for c in s.chars() {
+        if state == State::NotStarted {
+            state = if c.is_alphabetic() {
+                State::Alphabetic
+            } else {
+                State::NotAlphabetic
+            };
+        } else if state == State::Alphabetic && !c.is_alphabetic() {
+            wrap_up = true;
+            state = State::NotAlphabetic;
+        } else if state == State::NotAlphabetic && c.is_alphabetic() {
+            wrap_up = true;
+            state = State::Alphabetic;
+        }
+
+        // wrap up
+        if wrap_up {
+            collect(&mut tokens, &mut tok_chars, alphabetic);
+
+            // reset alphabetic
+            alphabetic = c.is_alphabetic();
+
+            // reset wrap_up
+            wrap_up = false;
+        }
+
+        // collect char
+        tok_chars.push(c);
+        alphabetic = alphabetic && c.is_alphabetic();
+    }
+    if tok_chars.len() > 0 {
+        collect(&mut tokens, &mut tok_chars, alphabetic);
+    }
+
+    tokens
+}
+
 fn main() {
     let original_file_name = "small.txt"; // Path::new("t8.shakespeare.txt");
     let pig_latin_file_name = "output.txt";
@@ -18,18 +84,14 @@ fn main() {
 
     for orig_line in orig_lines_by_line_reader {
         let orig_line = orig_line.expect(&read_err);
-        let orig_line_words = orig_line.split_whitespace();
 
-        let line = format!("x {}\n", orig_line);
-        for orig_word in orig_line_words {
-            println!("'{}'", orig_word);
-            output_file
-                .write(format!("{}\n", orig_word).as_bytes())
-                .expect(&write_err);
+        for tok in str_to_tokens(&orig_line) {
+            println!("Tok ({}, {}): {}", tok.alphabetic, tok.text.len(), tok.text);
         }
-        output_file
-            .write(line.as_bytes())
-            .expect("Error writing output.");
+
+        // output_file
+        //     .write(format!("{}\n", output_line).as_bytes())
+        //     .expect(&write_err);
     }
 
     println!("Done.");
