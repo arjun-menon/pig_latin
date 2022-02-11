@@ -1,3 +1,5 @@
+use clap::Parser;
+use rayon::prelude::*;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{self, BufRead};
@@ -35,7 +37,7 @@ impl Token {
             }
             // Note: if vowel_pos is None, it means `t` has only consonants.
         }
-        t.iter().collect()
+        t.into_iter().collect()
     }
 }
 
@@ -98,23 +100,68 @@ fn str_to_tokens(s: &str, add_newline: bool) -> Vec<Token> {
     tokens
 }
 
+/// Transform text into pig latin
+#[derive(Parser, Debug)]
+#[clap(author, about, long_about = None)]
+struct Args {
+    /// File name to process
+    filename: Option<String>,
+
+    /// Output file name
+    #[clap(short, long, default_value_t = String::from("output.txt"))]
+    output: String,
+
+    /// Process faster
+    #[clap(short, long)]
+    fast: bool,
+}
+
 fn main() {
-    let original_file_name = "t8.shakespeare.txt";
-    let pig_latin_file_name = "output.txt";
+    let args = Args::parse();
+
+    let original_file_name: String = match args.filename {
+        None => {
+            let default_input = "t8.shakespeare.txt"; // "small.txt"
+            println!("Defaulting to {}", default_input);
+            default_input.to_string()
+        }
+        Some(_) => args.filename.unwrap(),
+    };
+    let pig_latin_file_name = args.output;
 
     let read_err = format!("Could not read from {}", original_file_name);
     let write_err = format!("Could not write to {}", pig_latin_file_name);
 
-    let orig_file = File::open(Path::new(original_file_name)).expect(&read_err);
-    let mut output_file = File::create(Path::new(pig_latin_file_name)).expect(&write_err);
+    let orig_file = File::open(Path::new(&original_file_name)).expect(&read_err);
+    let mut output_file = File::create(Path::new(&pig_latin_file_name)).expect(&write_err);
     let lines = io::BufReader::new(orig_file).lines();
 
-    println!("Processing...");
-    lines
-        .flat_map(|line| str_to_tokens(&line.expect(&read_err), true))
-        .map(|tok| tok.transform_to_pig_latin())
-        .for_each(|line| {
-            output_file.write(line.as_bytes()).expect(&write_err);
-        });
+    println!(
+        "Processing{}...",
+        if !args.fast { "" } else { " with fast enabled" }
+    );
+
+    if args.fast {
+        lines
+            .map(|line| line.expect(&read_err))
+            .collect::<Vec<String>>() // load all lines fully into memory
+            .into_par_iter() // process lines in paralell
+            .flat_map(|line| str_to_tokens(&line, true))
+            .map(|tok| tok.transform_to_pig_latin())
+            .collect::<Vec<String>>()
+            .into_iter()
+            .for_each(|line| {
+                output_file.write(line.as_bytes()).expect(&write_err);
+            });
+    } else {
+        // when run without --fast, use less memory by processing in chunks
+        lines
+            .flat_map(|line| str_to_tokens(&line.expect(&read_err), true))
+            .map(|tok| tok.transform_to_pig_latin())
+            .for_each(|line| {
+                output_file.write(line.as_bytes()).expect(&write_err);
+            });
+    }
+
     println!("Done.");
 }
