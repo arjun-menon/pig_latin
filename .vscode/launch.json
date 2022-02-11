@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'pig_latin_rust'",
+            "name": "Debug executable 'pig_latin'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=pig_latin_rust",
-                    "--package=pig_latin_rust"
+                    "--bin=pig_latin",
+                    "--package=pig_latin"
                 ],
                 "filter": {
-                    "name": "pig_latin_rust",
+                    "name": "pig_latin",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'pig_latin_rust'",
+            "name": "Debug unit tests in executable 'pig_latin'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=pig_latin_rust",
-                    "--package=pig_latin_rust"
+                    "--bin=pig_latin",
+                    "--package=pig_latin"
                 ],
                 "filter": {
-                    "name": "pig_latin_rust",
+                    "name": "pig_latin",
                     "kind": "bin"
                 }
             },

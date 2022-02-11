@@ -1,5 +1,5 @@
 [package]
-name = "pig_latin_rust"
+name = "pig_latin"
 version = "0.1.0"
 edition = "2021"
 
