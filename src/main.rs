@@ -67,15 +67,8 @@ fn str_to_tokens(s: &str) -> Vec<Token> {
             None => {
                 alphabetic = Some(c_alphabetic);
             }
-            Some(true) => {
-                if !c_alphabetic {
-                    wrap_up = true;
-                }
-            }
-            Some(false) => {
-                if c_alphabetic {
-                    wrap_up = true;
-                }
+            Some(alphabetic) => {
+                wrap_up = alphabetic != c_alphabetic;
             }
         }
 
@@ -103,10 +96,9 @@ fn str_to_tokens(s: &str) -> Vec<Token> {
 }
 
 fn main() {
-    let original_file_name = "small.txt"; // Path::new("t8.shakespeare.txt");
+    let original_file_name = "t8.shakespeare.txt";
     let pig_latin_file_name = "output.txt";
 
-    println!("Processing...");
     let read_err = format!("Could not read from {}", original_file_name);
     let write_err = format!("Could not write to {}", pig_latin_file_name);
 
@@ -114,19 +106,14 @@ fn main() {
     let mut output_file = File::create(Path::new(pig_latin_file_name)).expect(&write_err);
     let orig_lines_by_line_reader = io::BufReader::new(orig_file).lines();
 
+    println!("Processing...");
     for orig_line in orig_lines_by_line_reader {
-        let orig_line = orig_line.expect(&read_err);
-
-        for tok in str_to_tokens(&orig_line) {
-            let s: String = tok.transform_to_pig_latin();
-            print!("{}", s);
+        for tok in str_to_tokens(&orig_line.expect(&read_err)) {
+            output_file
+                .write(tok.transform_to_pig_latin().as_bytes())
+                .expect(&write_err);
         }
-        println!("");
-
-        // output_file
-        //     .write(format!("{}\n", output_line).as_bytes())
-        //     .expect(&write_err);
+        output_file.write("\r\n".as_bytes()).expect(&write_err);
     }
-
     println!("Done.");
 }
