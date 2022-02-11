@@ -20,9 +20,19 @@ fn transform(tok: Token) -> String {
     if tok.alphabetic {
         if let Some(vowel_pos) = find_first_vowel(&t) {
             if vowel_pos == 0 {
-                t.extend_from_slice(&['y', 'a', 'y'][..]);
+                t.extend_from_slice(&['y', 'a', 'y']);
             } else {
-                let is_capitalized: bool = t[0].is_uppercase();
+                let capitalize: bool = t[0].is_uppercase();
+
+                let mut chars_before_vowel: Vec<_> = t.drain(0..vowel_pos).collect();
+
+                if capitalize {
+                    chars_before_vowel[0] = chars_before_vowel[0].to_ascii_lowercase();
+                    t[0] = t[0].to_ascii_uppercase();
+                }
+
+                t.extend_from_slice(&chars_before_vowel);
+                t.extend_from_slice(&['a', 'y']);
             }
         }
         // if we reach this point, it means `t` only has consonants
