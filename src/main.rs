@@ -16,11 +16,14 @@ impl Token {
 }
 
 fn transform(tok: Token) -> String {
-    let t = tok.text;
+    let mut t = tok.text;
     if tok.alphabetic {
-        let is_capitalized: bool = t[0].is_uppercase();
         if let Some(vowel_pos) = find_first_vowel(&t) {
-            //
+            if vowel_pos == 0 {
+                t.extend_from_slice(&['y', 'a', 'y'][..]);
+            } else {
+                let is_capitalized: bool = t[0].is_uppercase();
+            }
         }
         // if we reach this point, it means `t` only has consonants
     }
