@@ -1,4 +1,3 @@
-#![feature(str_split_whitespace_as_str)]
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{self, BufRead};
@@ -54,7 +53,7 @@ fn is_vowel(c: &char) -> bool {
     c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'
 }
 
-fn str_to_tokens(s: &str) -> Vec<Token> {
+fn str_to_tokens(s: &str, add_newline: bool) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut text: Vec<char> = Vec::new();
     let mut alphabetic: Option<bool> = None;
@@ -92,11 +91,15 @@ fn str_to_tokens(s: &str) -> Vec<Token> {
         tokens.push(Token::new(text, alphabetic.unwrap()));
     }
 
+    if add_newline {
+        tokens.push(Token::new(vec!['\r', '\n'], false))
+    }
+
     tokens
 }
 
 fn main() {
-    let original_file_name = "t8.shakespeare.txt";
+    let original_file_name = "small.txt"; // "t8.shakespeare.txt";
     let pig_latin_file_name = "output.txt";
 
     let read_err = format!("Could not read from {}", original_file_name);
@@ -108,12 +111,11 @@ fn main() {
 
     println!("Processing...");
     for orig_line in orig_lines_by_line_reader {
-        for tok in str_to_tokens(&orig_line.expect(&read_err)) {
+        for tok in str_to_tokens(&orig_line.expect(&read_err), true) {
             output_file
                 .write(tok.transform_to_pig_latin().as_bytes())
                 .expect(&write_err);
         }
-        output_file.write("\r\n".as_bytes()).expect(&write_err);
     }
     println!("Done.");
 }
