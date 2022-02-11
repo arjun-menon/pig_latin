@@ -13,31 +13,31 @@ impl Token {
         assert!(text.len() > 0);
         Token { text, alphabetic }
     }
-}
 
-fn transform(tok: Token) -> String {
-    let mut t = tok.text;
-    if tok.alphabetic {
-        if let Some(vowel_pos) = find_first_vowel(&t) {
-            if vowel_pos == 0 {
-                t.extend_from_slice(&['y', 'a', 'y']);
-            } else {
-                let capitalize: bool = t[0].is_uppercase();
+    fn transform_to_pig_latin(self) -> String {
+        let mut t = self.text;
+        if self.alphabetic {
+            if let Some(vowel_pos) = find_first_vowel(&t) {
+                if vowel_pos == 0 {
+                    t.extend_from_slice(&['y', 'a', 'y']);
+                } else {
+                    let capitalize: bool = t[0].is_uppercase();
 
-                let mut chars_before_vowel: Vec<_> = t.drain(0..vowel_pos).collect();
+                    let mut chars_before_vowel: Vec<_> = t.drain(0..vowel_pos).collect();
 
-                if capitalize {
-                    chars_before_vowel[0] = chars_before_vowel[0].to_ascii_lowercase();
-                    t[0] = t[0].to_ascii_uppercase();
+                    if capitalize {
+                        chars_before_vowel[0] = chars_before_vowel[0].to_ascii_lowercase();
+                        t[0] = t[0].to_ascii_uppercase();
+                    }
+
+                    t.extend_from_slice(&chars_before_vowel);
+                    t.extend_from_slice(&['a', 'y']);
                 }
-
-                t.extend_from_slice(&chars_before_vowel);
-                t.extend_from_slice(&['a', 'y']);
             }
+            // Note: if vowel_pos is None, it means `t` has only consonants.
         }
-        // if we reach this point, it means `t` only has consonants
+        t.iter().collect()
     }
-    t.iter().collect()
 }
 
 fn find_first_vowel(t: &Vec<char>) -> Option<usize> {
@@ -125,7 +125,7 @@ fn main() {
         let orig_line = orig_line.expect(&read_err);
 
         for tok in str_to_tokens(&orig_line) {
-            let s: String = transform(tok);
+            let s: String = tok.transform_to_pig_latin();
             print!("{}", s);
         }
         println!("");
