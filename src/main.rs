@@ -99,7 +99,7 @@ fn str_to_tokens(s: &str, add_newline: bool) -> Vec<Token> {
 }
 
 fn main() {
-    let original_file_name = "small.txt"; // "t8.shakespeare.txt";
+    let original_file_name = "t8.shakespeare.txt";
     let pig_latin_file_name = "output.txt";
 
     let read_err = format!("Could not read from {}", original_file_name);
@@ -107,15 +107,14 @@ fn main() {
 
     let orig_file = File::open(Path::new(original_file_name)).expect(&read_err);
     let mut output_file = File::create(Path::new(pig_latin_file_name)).expect(&write_err);
-    let orig_lines_by_line_reader = io::BufReader::new(orig_file).lines();
+    let lines = io::BufReader::new(orig_file).lines();
 
     println!("Processing...");
-    for orig_line in orig_lines_by_line_reader {
-        for tok in str_to_tokens(&orig_line.expect(&read_err), true) {
-            output_file
-                .write(tok.transform_to_pig_latin().as_bytes())
-                .expect(&write_err);
-        }
-    }
+    lines
+        .flat_map(|line| str_to_tokens(&line.expect(&read_err), true))
+        .map(|tok| tok.transform_to_pig_latin())
+        .for_each(|line| {
+            output_file.write(line.as_bytes()).expect(&write_err);
+        });
     println!("Done.");
 }
