@@ -1,5 +1,5 @@
 ## Pig Latin tool
-This program takes a text file as input, transforms it to [pig latin](https://en.wikipedia.org/wiki/Pig_Latin), and writes that to text file as output.
+This program takes a text file as input, transforms it to [pig latin](https://en.wikipedia.org/wiki/Pig_Latin), and writes that to a text file as output.
 
 ### Source Code
 
@@ -9,12 +9,12 @@ See all of the code at: https://github.com/arjun-menon/pig_latin/blob/master/src
 
 Steps:
 1. Install Rust. [See this guideline](https://doc.rust-lang.org/book/ch01-01-installation.html).
-2. Clone this git repo. Inside this repo, run `cargo build --release`.
+2. Clone this repo. Inside the repo, run `cargo build --release`.
 3. The compiled exectuable should be at `target/release/pig_latin`.
 
 ### Usage
 
-Simply run the `pig_latin` exectuable (from above) to do a test run against `t8.shakespeare.txt`. Feel free to provide a different input file as an argument to `pig_latin` (see CLI section below).
+Run the `pig_latin` exectuable (from above, with no arguments) to do a test run against `t8.shakespeare.txt`. Provide a different input file as an argument to `pig_latin` (see CLI section below), for example: `pig_latin alexis_de_tocqueville.txt`.
 
 By default, the output ends up at `output.txt`, but a different output file can be specified using the `--output` flag.
 
