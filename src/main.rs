@@ -8,6 +8,7 @@ struct Token {
     text: Vec<char>,
     alphabetic: bool,
 }
+
 impl Token {
     fn new(text: Vec<char>, alphabetic: bool) -> Token {
         assert!(text.len() > 0);
@@ -15,41 +16,41 @@ impl Token {
     }
 
     fn transform_to_pig_latin(self) -> String {
-        let mut t = self.text;
+        let mut text = self.text;
         if self.alphabetic {
-            if let Some(vowel_pos) = find_first_vowel(&t) {
+            if let Some(vowel_pos) = find_first_vowel(&text) {
                 if vowel_pos == 0 {
-                    t.extend_from_slice(&['y', 'a', 'y']);
+                    text.extend_from_slice(&['y', 'a', 'y']);
                 } else {
-                    let capitalized: bool = t[0].is_uppercase();
+                    let capitalized: bool = text[0].is_uppercase();
 
-                    let mut chars_before_vowel: Vec<_> = t.drain(0..vowel_pos).collect();
+                    let mut chars_before_vowel: Vec<_> = text.drain(0..vowel_pos).collect();
 
                     if capitalized {
                         chars_before_vowel[0] = chars_before_vowel[0].to_ascii_lowercase();
-                        t[0] = t[0].to_ascii_uppercase();
+                        text[0] = text[0].to_ascii_uppercase();
                     }
 
-                    t.extend_from_slice(&chars_before_vowel);
-                    t.extend_from_slice(&['a', 'y']);
+                    text.extend_from_slice(&chars_before_vowel);
+                    text.extend_from_slice(&['a', 'y']);
                 }
             }
             // Note: if vowel_pos is None, it means `t` has only consonants.
         }
-        t.into_iter().collect()
+        text.into_iter().collect()
     }
 }
 
 fn find_first_vowel(t: &Vec<char>) -> Option<usize> {
     for (i, c) in t.iter().enumerate() {
-        if is_vowel(c) {
+        if is_vowel(*c) {
             return Some(i);
         }
     }
     None
 }
 
-fn is_vowel(c: &char) -> bool {
+fn is_vowel(c: char) -> bool {
     let c = c.to_ascii_lowercase();
     c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'
 }
