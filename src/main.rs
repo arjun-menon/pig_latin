@@ -54,49 +54,38 @@ fn is_vowel(c: &char) -> bool {
     c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'
 }
 
-fn str_to_tokens(s: &str, add_newline: bool) -> Vec<Token> {
+fn str_to_tokens(s: String, add_newline: bool) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
+
+    if s.len() == 0 {
+        return tokens;
+    }
+
     let mut text: Vec<char> = Vec::new();
-    let mut alphabetic: Option<bool> = None;
-    let mut wrap_up = false;
+    let mut alphabetic = first_char(&s).is_ascii_alphabetic();
 
-    for c in s.chars() {
-        let c_alphabetic = c.is_ascii_alphabetic();
-
-        match alphabetic {
-            None => {
-                alphabetic = Some(c_alphabetic);
-            }
-            Some(alphabetic) => {
-                wrap_up = alphabetic != c_alphabetic;
-            }
+    for ch in s.chars() {
+        if alphabetic != ch.is_ascii_alphabetic() {
+            // wrap up if there is a transition
+            tokens.push(Token::new(text, alphabetic));
+            text = Vec::new(); // reset text
+            alphabetic = !alphabetic; // reset alphabetic
         }
 
-        if wrap_up {
-            tokens.push(Token::new(text, alphabetic.unwrap()));
-            text = Vec::new();
-
-            // reset alphabetic
-            alphabetic = Some(c_alphabetic);
-
-            // reset wrap_up
-            wrap_up = false;
-        }
-
-        // collect char
-        text.push(c);
-
-        alphabetic = Some(alphabetic.unwrap() && c_alphabetic);
+        text.push(ch); // collect char
     }
-    if text.len() > 0 {
-        tokens.push(Token::new(text, alphabetic.unwrap()));
-    }
+
+    tokens.push(Token::new(text, alphabetic)); // text will alway be non-empty, i.e. text.len() > 0
 
     if add_newline {
         tokens.push(Token::new(vec!['\r', '\n'], false))
     }
 
     tokens
+}
+
+fn first_char(s: &str) -> char {
+    s.chars().next().unwrap()
 }
 
 /// Transform text into pig latin
@@ -140,7 +129,7 @@ fn main() {
         output_file
             .write(
                 str_to_tokens(
-                    &fs::read_to_string(&original_file_name).expect(&read_err),
+                    fs::read_to_string(&original_file_name).expect(&read_err),
                     false,
                 )
                 .into_par_iter() // process tokens in paralell
@@ -153,7 +142,7 @@ fn main() {
         // when run with --lowmem, use less memory by processing in chunks
         io::BufReader::new(File::open(&original_file_name).expect(&read_err))
             .lines() // read the file line-by-line
-            .flat_map(|line| str_to_tokens(&line.expect(&read_err), true))
+            .flat_map(|line| str_to_tokens(line.expect(&read_err), true))
             .map(|tok| tok.transform_to_pig_latin())
             .for_each(|line| {
                 output_file.write(line.as_bytes()).expect(&write_err);
