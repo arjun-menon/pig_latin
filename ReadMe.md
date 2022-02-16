@@ -20,7 +20,7 @@ By default, the output ends up at `output.txt`, but a different output file can 
 
 ### Low Memory Option
 
-Run `pig_latin` with `--lowmem` to use less memory. When running with this option enabled, `pig_latin` will process the text file line-by-line (while also limiting processing ***to a single thread***), and hence the overall and peak memory usage **will be significantly lower**. 
+Run `pig_latin` with `--lowmem` to use less memory. When running with this option enabled, `pig_latin` will process the text file line-by-line (while also limiting processing ***to a single thread***), and hence the overall and peak memory usage **will be significantly lower**. (In normal processing, the text file processed in parallel via [rayon](https://docs.rs/rayon/latest/rayon/) by a number of threads up to the number of CPUs on the system.)
 
 ### Comamnd-Line Interface (CLI)
 
